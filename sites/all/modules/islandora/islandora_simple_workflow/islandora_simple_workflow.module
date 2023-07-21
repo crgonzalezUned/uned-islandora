@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * A simple editorial workflow for Islandora.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_simple_workflow_menu() {
+  return array(
+    'admin/islandora/tools/simple_workflow' => array(
+      'title' => 'Simple Workflow inactive objects',
+      'type' => MENU_NORMAL_ITEM,
+      'description' => 'List of inactive objects.',
+      'access arguments' => array('manage inactive objects'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_simple_workflow_manage_form'),
+      'file' => 'includes/manage.inc',
+    ),
+    'admin/islandora/tools/simple_workflow/list' => array(
+      'title' => 'Simple Workflow inactive objects',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+      'description' => 'List of inactive objects.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_simple_workflow_manage_form'),
+      'access arguments' => array('manage inactive objects'),
+      'file' => 'includes/manage.inc',
+    ),
+    'admin/islandora/tools/simple_workflow/settings' => array(
+      'title' => 'Simple Workflow settings',
+      'type' => MENU_LOCAL_TASK,
+      'description' => 'Configuration settings for Islandora Simple Workflow module.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_simple_workflow_admin_form'),
+      'access arguments' => array('administer site configuration'),
+      'file' => 'includes/admin.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_simple_workflow_permission() {
+  return array(
+    'bypass inactive object state' => array(
+      'title' => t('Bypass default inactive object state'),
+      'description' => t('Islandora Simple Workflow sets ingested objects as active if enabled.'),
+    ),
+    'manage inactive objects' => array(
+      'title' => t('Manage inactive objects'),
+      'description' => t('View a list of inactive objects.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_object_alter().
+ */
+function islandora_simple_workflow_islandora_object_alter(AbstractObject $object, array &$context) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  if ($context['action'] == 'ingest') {
+    $connection = islandora_get_tuque_connection();
+    $enabled_solution_packs = module_invoke_all('islandora_required_objects', $connection);
+    $system_objects = array();
+    foreach ($enabled_solution_packs as $solution_pack_module => $solution_pack_info) {
+      foreach ($solution_pack_info['objects'] as $solution_pack_object) {
+        $system_objects[] = $solution_pack_object->id;
+      }
+    }
+    if (!in_array($object->id, $system_objects) && !islandora_object_access('bypass inactive object state', $object)) {
+      $object->state = 'I';
+    }
+  }
+}

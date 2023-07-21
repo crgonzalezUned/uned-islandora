@@ -1,0 +1,24 @@
+<?php
+/**
+ * @file
+ * Install and uninstall functions for the islandora_marcxml module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_marcxml_uninstall() {
+  $variables = array(
+    'islandora_marcxml_allow_editing_of_existing_mods',
+  );
+  array_walk($variables, 'variable_del');
+}
+
+/**
+ * Notify the user that the MARCXML XSLT files have been updated.
+ */
+function islandora_marcxml_update_7100(&$sandbox) {
+  drupal_set_message(filter_xss(t('Islandora MARCXML is now using the most recent versions of the Library of Congress
+  MODS-to-MARCXML and MARCXML-to-MODS XSL files. If you wish to switch back to the old versions, you can select them
+  on the module configuration page.')));
+}

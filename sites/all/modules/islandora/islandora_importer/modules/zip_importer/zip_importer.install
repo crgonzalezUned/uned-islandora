@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for zip_importer.
+ */
+
+/**
+ * Un-deprecate the marcxml-to-mods file and repointing to Islandora Marcxml.
+ */
+function zip_importer_update_7101() {
+  return t('For a short time this module required the Islandora MARCXML module. That requirement has been removed. You may want to disable the Islandora MARCXML module if you installed it to meet that requirement.');
+}
